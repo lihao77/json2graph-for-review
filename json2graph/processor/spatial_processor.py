@@ -192,7 +192,6 @@ class SpatialProcessor(IProcessor):
             for key in ['name', 'NAME', 'Name', 'sheng_name', 'shi_name', 'xian_name', '行政区', '河流名称', 'river_name']:
                 name = properties.get(key)
                 if name:
-                    print(name, "@@@@@@@@@@@@@@")
                     return name
             
             return None

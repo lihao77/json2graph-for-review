@@ -15,12 +15,12 @@ with open(os.path.join(here, 'requirements.txt'), encoding='utf-8') as f:
 setup(
     name="json2graph",
     version="0.1.0",
-    author="json2graph Team",
-    author_email="your.email@example.com",
+    author="lihao77",
+    author_email="anonymous",
     description="JSON到图数据库的动态转换框架",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/json2graph",
+    url="https://github.com/lihao77/json2graph",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -61,8 +61,8 @@ setup(
     zip_safe=False,
     keywords="json graph database neo4j knowledge-graph spatio-temporal",
     project_urls={
-        "Bug Reports": "https://github.com/yourusername/json2graph/issues",
-        "Source": "https://github.com/yourusername/json2graph",
+        "Bug Reports": "https://github.com/lihao77/json2graph/issues",
+        "Source": "https://github.com/lihao77/json2graph",
         "Documentation": "https://json2graph.readthedocs.io/",
     },
 )
