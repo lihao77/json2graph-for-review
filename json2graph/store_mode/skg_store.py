@@ -1096,3 +1096,22 @@ class SKGStore(IGraphStore):
             basis=basis,
             source=source,
         ).single()
+
+    def build_spatial_framework(self) -> Dict[str, Any]:
+        """构建层级化的空间框架
+
+        Returns:
+            Dict: 空间框架信息，包含位置层级数量和事件位置数量
+        """
+        self.logger.info("开始构建空间框架...")
+
+        try:
+            # 调用数据库连接的空间框架构建方法
+            spatial_info = self.db.build_spatial_framework()
+
+            self.logger.info(f"空间框架构建完成: {spatial_info}")
+            return spatial_info
+
+        except Exception as e:
+            self.logger.error(f"构建空间框架失败: {e}")
+            raise

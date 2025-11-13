@@ -212,4 +212,64 @@ spatial_config = {
 - **行政区划**：1个省级feature + 14个市级features + 111个县级features
 - **河流数据**：83条河流，分别按省（83段）、市（123段）、县（252段）存储
 - **智能回退**：细粒度失败时自动使用粗粒度数据
-- 回答请使用中文
+
+### 空间框架功能
+
+#### 架构设计
+空间框架采用**协调式架构**，明确分离职责：
+
+1. **SpatialRelationshipProcessor**: 实时处理器，负责添加基础空间属性
+2. **db.py空间框架**: 批量处理器，负责复杂关系构建和验证
+
+#### SpatialRelationshipProcessor职责
+- **添加空间属性**: 为实体添加`admin_level`、`parent_location_id`等属性
+- **实时处理**: 在实体插入时立即处理，无需等待批量操作
+- **基础分析**: 进行简单的ID解析和属性提取
+- **不创建关系**: 避免与批量处理器冲突
+- **支持所有状态类型**: 完整支持LS-(地点状态)、FS-(设施状态)、ES-(事件状态)、JS-(联合状态)
+
+#### db.py空间框架职责
+- **批量关系创建**: 统一创建所有空间关系（locatedIn、occurredAt）
+- **复杂图分析**: 处理需要全局图信息的关系
+- **数据验证**: 验证处理器添加的属性与实际关系的一致性
+- **完整性保证**: 确保所有空间关系的完整性和一致性
+
+#### 空间框架构建
+```python
+# 构建空间框架（自动协调处理器和批量处理）
+spatial_info = store.build_spatial_framework()
+# 返回: {
+#   "location_hierarchies": 12,
+#   "event_locations": 5,
+#   "validation_results": {...}
+# }
+```
+
+#### 使用方式
+```python
+# 1. 添加空间处理器（添加基础属性）
+spatial_processor = SpatialRelationshipProcessor()
+store.add_processor(spatial_processor)
+
+# 2. 存储数据（处理器自动添加空间属性）
+store.store_knowledge_graph(data)
+
+# 3. 构建空间框架（批量创建关系和验证）
+spatial_info = store.build_spatial_framework()
+```
+
+#### ID格式支持
+- **行政区划**：`L-450000`（省）、`L-450100`（市）、`L-450103`（县）
+- **子区域**：`L-450123>某某镇>某某村`（支持多级）
+- **设施**：`F-450103-南宁吴圩国际机场`
+- **事件**：`E-450300-20240615-FLOOD`
+- **河流**：`L-RIVER-漓江`、`L-RIVER-武思江>浦北县河段`
+- **状态实体**：
+  - `LS-L-450300-20240615`（地点状态）
+  - `FS-F-450103-20240615`（设施状态）
+  - `ES-E-450300-20240615`（事件状态）
+  - `JS-MULTI-20240615`（联合状态）
+
+
+
+## 回答请使用中文

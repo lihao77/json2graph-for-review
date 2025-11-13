@@ -4,7 +4,9 @@
 """
 
 from .spatial_processor import SpatialProcessor
+from .spatial_relationship_processor import SpatialRelationshipProcessor
 
 __all__ = [
-    'SpatialProcessor'
+    'SpatialProcessor',
+    'SpatialRelationshipProcessor'
 ]

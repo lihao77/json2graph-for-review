@@ -1,5 +1,25 @@
-{
-  "基础实体": [
+#!/usr/bin/env python3
+"""测试空间框架功能
+
+测试空间框架的构建功能，包括层级化的空间关系、事件与地点的关联关系等。
+"""
+
+import json
+import logging
+from datetime import datetime
+
+from json2graph import Neo4jConnection, SKGStore, SpatialRelationshipProcessor, SpatialProcessor
+from json2graph.interfaces import EntityType
+
+# 配置日志
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+
+def create_test_data():
+    """创建测试数据"""
+    test_data = {
+"基础实体": [
     {
       "类型": "事件",
       "名称": "2020年6月上旬桂北、桂西地区暴雨洪涝灾害过程",
@@ -848,4 +868,194 @@
       "依据": "龙江支流东小江、红水河支流灵奇河、桂江支流良丰河等部分中小河流出现5-20年一遇洪水"
     }
   ]
-}
+    }
+    return test_data
+
+
+def test_spatial_framework():
+    """测试空间框架功能"""
+    logger.info("开始测试空间框架功能...")
+
+    try:
+        # 创建数据库连接
+        db_connection = Neo4jConnection(
+            uri="bolt://localhost:7687",
+            user="neo4j",
+            password="admin123456"
+        )
+        db_connection.connect()
+        logger.info("数据库连接成功")
+
+        # 创建存储实例
+        store = SKGStore(db_connection)
+        logger.info("存储实例创建成功")
+
+        # 添加空间关系处理器
+        spatial_Relationship_processor = SpatialRelationshipProcessor()
+        # 配置空间处理器
+        spatial_config = {
+            "api_key": "msvcwRmOJFaHyzjlieIP0Z1TI1PZIvgl",  # 请替换为实际的API密钥
+            "service": "baidu",
+            "cache_file": "spatial_geocoding_cache.json",
+            "admin_geojson_dir": "data/admin_geojson",
+            "river_geojson_dir": "data/river_geojson"
+        }
+        # 添加空间处理器
+        spatial_processor = SpatialProcessor(
+            **spatial_config
+        )
+        store.add_processor(spatial_processor)
+        store.add_processor(spatial_Relationship_processor)
+        logger.info("空间关系处理器添加成功")
+
+        # 获取测试数据
+        test_data = create_test_data()
+        logger.info(f"测试数据准备完成，包含 {len(test_data['基础实体'])} 个基础实体")
+
+        # 存储数据
+        logger.info("开始存储数据...")
+        store.store_knowledge_graph(test_data)
+        logger.info("数据存储完成")
+
+        # 构建空间框架
+        logger.info("开始构建空间框架...")
+        spatial_info = store.build_spatial_framework()
+        logger.info(f"空间框架构建完成: {spatial_info}")
+
+        # 验证空间关系
+        logger.info("开始验证空间关系...")
+        verify_spatial_relationships(db_connection)
+
+        logger.info("空间框架测试完成！")
+        return True
+
+    except Exception as e:
+        logger.error(f"测试失败: {e}")
+        return False
+
+    finally:
+        if 'db_connection' in locals():
+            db_connection.close()
+
+
+def verify_spatial_relationships(db_connection):
+    """验证空间关系是否正确创建"""
+
+    # 验证层级化的空间关系 (locatedIn)
+    logger.info("验证层级化的空间关系...")
+
+    query_hierarchy = """
+        MATCH (child)-[r:locatedIn]->(parent)
+        RETURN child.id AS child_id, child.name AS child_name,
+               parent.id AS parent_id, parent.name AS parent_name
+        ORDER BY child_id
+    """
+
+    with db_connection.get_session() as session:
+        hierarchy_results = session.run(query_hierarchy).data()
+        logger.info(f"找到 {len(hierarchy_results)} 个层级关系:")
+        for rel in hierarchy_results:
+            logger.info(f"  {rel['child_name']} ({rel['child_id']}) -[locatedIn]-> {rel['parent_name']} ({rel['parent_id']})")
+
+    # 验证事件与地点的关系 (occurredAt)
+    logger.info("验证事件与地点的关系...")
+
+    query_events = """
+        MATCH (event)-[r:occurredAt]->(location)
+        WHERE event.id STARTS WITH 'E-'
+        RETURN event.id AS event_id, event.name AS event_name,
+               location.id AS location_id, location.name AS location_name
+        ORDER BY event_id
+    """
+
+    with db_connection.get_session() as session:
+        event_results = session.run(query_events).data()
+        logger.info(f"找到 {len(event_results)} 个事件与地点的关系:")
+        for rel in event_results:
+            logger.info(f"  事件: {rel['event_name']} ({rel['event_id']}) -[occurredAt]-> 地点: {rel['location_name']} ({rel['location_id']})")
+
+    # 验证设施与地点的关系 (locatedIn)
+    logger.info("验证设施与地点的关系...")
+
+    query_facilities = """
+        MATCH (facility)-[r:locatedIn]->(location)
+        WHERE facility.id STARTS WITH 'F-'
+        RETURN facility.id AS facility_id, facility.name AS facility_name,
+               location.id AS location_id, location.name AS location_name
+        ORDER BY facility_id
+    """
+
+    with db_connection.get_session() as session:
+        facility_results = session.run(query_facilities).data()
+        logger.info(f"找到 {len(facility_results)} 个设施与地点的关系:")
+        for rel in facility_results:
+            logger.info(f"  设施: {rel['facility_name']} ({rel['facility_id']}) -[locatedIn]-> 地点: {rel['location_name']} ({rel['location_id']})")
+
+    # 验证行政区划层级关系
+    logger.info("验证行政区划层级关系...")
+
+    query_admin_hierarchy = """
+        MATCH (child:地点)-[r:locatedIn]->(parent:地点)
+        WHERE child.id STARTS WITH 'L-' AND parent.id STARTS WITH 'L-'
+        AND NOT child.id CONTAINS 'RIVER'
+        RETURN child.id AS child_id, child.name AS child_name,
+               parent.id AS parent_id, parent.name AS parent_name
+        ORDER BY child_id
+    """
+
+    with db_connection.get_session() as session:
+        admin_results = session.run(query_admin_hierarchy).data()
+        logger.info(f"找到 {len(admin_results)} 个行政区划层级关系:")
+        for rel in admin_results:
+            logger.info(f"  行政区划: {rel['child_name']} ({rel['child_id']}) -[locatedIn]-> {rel['parent_name']} ({rel['parent_id']})")
+
+    logger.info("空间关系验证完成")
+
+
+def test_spatial_processor():
+    """测试空间关系处理器"""
+    logger.info("开始测试空间关系处理器...")
+
+    # 创建空间关系处理器
+    processor = SpatialRelationshipProcessor()
+
+    # 测试基础实体处理
+    base_entity = {
+        "类型": "地点",
+        "名称": "测试地点",
+        "唯一ID": "L-450123",
+        "地理描述": "测试描述"
+    }
+
+    result = processor.process(EntityType.BASE_ENTITY, base_entity)
+    logger.info(f"基础实体处理结果: {len(result.graph_operations)} 个图操作")
+
+    # 测试状态实体处理
+    state_entity = {
+        "类型": "独立状态",
+        "关联实体ID列表": ["L-450123", "L-450100"],
+        "状态ID": "S-TEST-001",
+        "时间": "2024-01-01至2024-01-31",
+        "状态描述": {"测试属性": "测试值"}
+    }
+
+    result = processor.process(EntityType.STATE_ENTITY, state_entity)
+    logger.info(f"状态实体处理结果: {len(result.graph_operations)} 个图操作")
+
+    logger.info("空间关系处理器测试完成")
+
+
+if __name__ == "__main__":
+    logger.info("=== 空间框架功能测试 ===")
+
+    # 测试空间关系处理器
+    # test_spatial_processor()
+
+    # 测试完整的框架功能
+    success = test_spatial_framework()
+
+    if success:
+        logger.info("所有测试通过！")
+    else:
+        logger.error("测试失败！")
+        exit(1)

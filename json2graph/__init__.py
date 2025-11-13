@@ -18,7 +18,7 @@ from .db import Neo4jConnection
 from .store_mode import SKGStore, STKGStore
 
 # 处理器
-from .processor import SpatialProcessor
+from .processor import SpatialProcessor, SpatialRelationshipProcessor
 
 # 异常类
 from .exception import (
@@ -54,6 +54,7 @@ __all__ = [
     
     # 处理器
     "SpatialProcessor",
+    "SpatialRelationshipProcessor",
     
     # 异常类
     "Json2GraphError",
