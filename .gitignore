@@ -154,3 +154,4 @@ config.local.py
 # Claude相关
 .claude/
 .claude-code-router/
+CLAUDE.md
