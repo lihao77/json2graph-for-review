@@ -1,70 +1,70 @@
-# json2graph - 洪涝灾害时空知识图谱构建框架
+# json2graph - Flood Disaster Spatio-Temporal Knowledge Graph Construction Framework
 
-## 项目简介
+## Project Overview
 
-**json2graph** 是一个专门用于构建洪涝灾害时空知识图谱的Python框架。该框架基于Neo4j图数据库，支持将结构化JSON数据转换为知识图谱，通过动态处理器架构实现灵活的数据处理和空间关系建模。
+**json2graph** is a Python framework specifically designed for building spatio-temporal knowledge graphs for flood disasters. Based on Neo4j graph database, it supports converting structured JSON data into knowledge graphs with flexible data processing and spatial relationship modeling through a dynamic processor architecture.
 
-## 核心功能
+## Core Features
 
-- **时空知识图谱构建**：支持基础实体（事件、地点、设施）、状态实体和状态关系的存储
-- **动态处理器架构**：支持在节点插入后动态插拔处理器进行数据增强
-- **空间关系处理**：自动构建行政区划层级关系、地点-设施关联关系
-- **处理器协作机制**：通过上下文传递实现处理器间数据共享
+- **Spatio-Temporal Knowledge Graph Construction**: Supports storage of base entities (events, locations, facilities), state entities, and state relationships
+- **Dynamic Processor Architecture**: Supports dynamically attaching/detaching processors for data enhancement after node insertion
+- **Spatial Relationship Processing**: Automatically builds administrative hierarchy relationships and location-facility associations
+- **Processor Collaboration Mechanism**: Enables data sharing between processors through context passing
 
-## 主要特性
+## Key Features
 
-### 🏗️ 架构特性
-- **IGraphStore接口**：统一的图存储操作规范
-- **IProcessor接口**：动态处理器插拔机制，所有处理器在节点插入后执行
-- **Neo4jConnection**：Neo4j数据库连接管理器
-- **SKGStore**：基础时空知识图谱存储实现
-- **STKGStore**：增强版存储（集成空间和关系处理器）
+### 🏗️ Architecture Features
+- **IGraphStore Interface**: Unified graph storage operation specification
+- **IProcessor Interface**: Dynamic processor plug-in mechanism, all processors execute after node insertion
+- **Neo4jConnection**: Neo4j database connection manager
+- **SKGStore**: Basic spatio-temporal knowledge graph storage implementation
+- **STKGStore**: Enhanced storage (integrates spatial and relationship processors)
 
-### 🌍 空间数据处理
-- **SpatialProcessor**：处理地点实体的空间属性和地理编码
-- **SpatialRelationshipProcessor**：构建地点间的层级关系和地点-设施的关联关系
-- **支持多种ID格式**：行政区划码、河流标识、自定义子区域
+### 🌍 Spatial Data Processing
+- **SpatialProcessor**: Processes spatial attributes and geocoding for location entities
+- **SpatialRelationshipProcessor**: Builds hierarchical relationships between locations and location-facility associations
+- **Multiple ID Format Support**: Administrative codes, river identifiers, custom sub-regions
 
-### 🔧 处理器功能
-- **结构化操作指令**：通过`ProcessorResult`返回图操作指令
-- **属性操作**：批量添加节点属性
-- **标签操作**：动态添加节点标签
-- **节点创建**：创建新节点并建立关系
-- **关系创建**：在已有节点间创建关系
-- **自定义查询**：支持执行Cypher查询
-- **上下文传递**：处理器间数据共享和协作
+### 🔧 Processor Features
+- **Structured Operation Instructions**: Returns graph operation instructions via `ProcessorResult`
+- **Property Operations**: Batch addition of node properties
+- **Label Operations**: Dynamic addition of node labels
+- **Node Creation**: Creates new nodes and establishes relationships
+- **Relationship Creation**: Creates relationships between existing nodes
+- **Custom Queries**: Supports Cypher query execution
+- **Context Passing**: Data sharing and collaboration between processors
 
-## 安装步骤
+## Installation
 
-### 基础安装
+### Basic Installation
 ```bash
-# 克隆项目
+# Clone the repository
 git clone https://github.com/lihao77/json2graph.git
 cd json2graph
 
-# 安装核心依赖
+# Install core dependencies
 pip install -r requirements.txt
 
-# 安装包（开发模式）
+# Install package (development mode)
 pip install -e .
 ```
 
-### 依赖要求
-- **核心依赖**：
+### Dependencies
+- **Core Dependencies**:
   - neo4j>=5.0.0
   - requests>=2.25.0
   - numpy>=1.20.0
   - pandas>=1.3.0
   - pyyaml>=5.4.0
-- **Python版本**：>=3.8
+- **Python Version**: >=3.8
 
-## 基本使用示例
+## Basic Usage Examples
 
-### 1. 基础使用（SKGStore）
+### 1. Basic Usage (SKGStore)
 ```python
 from json2graph import Neo4jConnection, SKGStore
 
-# 连接数据库
+# Connect to database
 db = Neo4jConnection(
     uri="bolt://localhost:7687",
     user="neo4j",
@@ -72,17 +72,17 @@ db = Neo4jConnection(
 )
 db.connect()
 
-# 创建存储实例（不带任何处理器）
+# Create store instance (without any processors)
 store = SKGStore(db)
 
-# 存储知识图谱数据
+# Store knowledge graph data
 data = {
     "基础实体": [
         {
             "类型": "地点",
             "名称": "南宁市",
             "唯一ID": "L-450100",
-            "地理描述": "广西壮族自治区首府"
+            "地理描述": "Capital of Guangxi Zhuang Autonomous Region"
         }
     ],
     "状态实体": [],
@@ -92,11 +92,11 @@ data = {
 store.store_knowledge_graph(data)
 ```
 
-### 2. 使用增强版存储（STKGStore）
+### 2. Using Enhanced Storage (STKGStore)
 ```python
 from json2graph import Neo4jConnection, STKGStore
 
-# 连接数据库
+# Connect to database
 db = Neo4jConnection(
     uri="bolt://localhost:7687",
     user="neo4j",
@@ -104,14 +104,14 @@ db = Neo4jConnection(
 )
 db.connect()
 
-# 创建增强版存储实例（自动集成空间和关系处理器）
+# Create enhanced store instance (automatically integrates spatial and relationship processors)
 store = STKGStore(db)
 
-# 存储数据，自动处理空间关系
+# Store data with automatic spatial relationship processing
 store.store_knowledge_graph(data)
 ```
 
-### 3. 自定义处理器
+### 3. Custom Processor
 ```python
 from json2graph import IProcessor, EntityType, ProcessorResult, SKGStore
 
@@ -125,11 +125,11 @@ class CustomProcessor(IProcessor):
     def process(self, entity_type, data, context=None):
         result = ProcessorResult()
 
-        # 添加自定义属性
+        # Add custom property
         result.add_property("custom_tag", "processed")
         result.add_label("CustomEntity")
 
-        # 创建关联节点
+        # Create associated node
         result.create_node(
             node_type="Metadata",
             properties={"source": "custom_processor"},
@@ -138,12 +138,12 @@ class CustomProcessor(IProcessor):
 
         return result
 
-# 使用自定义处理器
+# Use custom processor
 store = SKGStore(db)
 store.add_processor(CustomProcessor())
 ```
 
-### 4. 处理器协作示例
+### 4. Processor Collaboration Example
 ```python
 class Processor1(IProcessor):
     def get_name(self) -> str:
@@ -156,7 +156,7 @@ class Processor1(IProcessor):
         result = ProcessorResult()
         result.add_property("step1", "completed")
 
-        # 传递上下文给后续处理器
+        # Pass context to subsequent processors
         result.processor_context = {
             "entity_name": data.get("名称"),
             "step1_completed": True
@@ -173,7 +173,7 @@ class Processor2(IProcessor):
     def process(self, entity_type, data, context=None):
         result = ProcessorResult()
 
-        # 使用前面处理器的数据
+        # Use data from previous processor
         if context and context.get("step1_completed"):
             entity_name = context.get("entity_name")
             result.add_property("step2", f"used_{entity_name}")
@@ -181,9 +181,9 @@ class Processor2(IProcessor):
         return result
 ```
 
-## 配置说明
+## Configuration
 
-### Neo4j连接配置
+### Neo4j Connection Configuration
 ```python
 from json2graph import Neo4jConnection
 
@@ -195,195 +195,197 @@ db = Neo4jConnection(
 db.connect()
 ```
 
-### 使用不同存储模式
+### Using Different Storage Modes
 
-**SKGStore** - 基础存储，只存储JSON数据到图数据库：
+**SKGStore** - Basic storage, only stores JSON data to graph database:
 ```python
 from json2graph import SKGStore
 store = SKGStore(db)
 ```
 
-**STKGStore** - 增强版存储，自动集成SpatialProcessor和SpatialRelationshipProcessor：
+**STKGStore** - Enhanced storage, automatically integrates SpatialProcessor and SpatialRelationshipProcessor:
 ```python
 from json2graph import STKGStore
 store = STKGStore(db)
-# 自动处理空间关系和层级结构
+# Automatically handles spatial relationships and hierarchical structure
 ```
 
-## 数据格式要求
+## Data Format Requirements
 
-详细的数据格式定义请参考 [jsonDefinition.md](jsonDefinition.md)。
+For detailed data format definitions, please refer to [jsonDefinition.md](jsonDefinition.md).
 
-### JSON数据结构
+### JSON Data Structure
 ```json
 {
   "基础实体": [
     {
       "类型": "事件/地点/设施",
-      "名称": "标准化名称",
-      "唯一ID": "生成的唯一ID",
-      "地理描述": "文本中关于地理位置的描述"
+      "名称": "Standardized name",
+      "唯一ID": "Generated unique ID",
+      "地理描述": "Geographic description from text"
     }
   ],
   "状态实体": [
     {
       "类型": "独立状态/联合状态",
-      "关联实体ID列表": ["一个或多个基础实体ID"],
-      "状态ID": "唯一状态标识符",
-      "时间": "YYYY-MM-DD至YYYY-MM-DD",
+      "关联实体ID列表": ["One or more base entity IDs"],
+      "状态ID": "Unique state identifier",
+      "时间": "YYYY-MM-DD to YYYY-MM-DD",
       "状态描述": {
-        "扁平化属性1": "值1",
-        "扁平化属性2": "值2"
+        "flattened_property1": "value1",
+        "flattened_property2": "value2"
       }
     }
   ],
   "状态关系": [
     {
-      "主体状态ID": "原因状态的ID",
+      "主体状态ID": "ID of causal state",
       "关系": "导致/间接导致/触发",
-      "客体状态ID": "结果状态的ID",
-      "依据": "原文中支持该关系的关键句"
+      "客体状态ID": "ID of result state",
+      "依据": "Key sentence from original text supporting the relationship"
     }
   ]
 }
 ```
 
-### ID格式规范
+### ID Format Specification
 
-#### 事件ID格式
-- 格式：`E-<行政区划码>-<日期YYYYMMDD>-<事件类型>`
-- 示例：`E-450000-20231001-TYPHOON`
+#### Event ID Format
+- Format: `E-<administrative_code>-<date_YYYYMMDD>-<event_type>`
+- Example: `E-450000-20231001-TYPHOON`
 
-#### 地点ID格式
-- **行政区划**：`L-<行政区划码>[>子区域]`
-  - 示例：`L-450100`（南宁市）、`L-450103>新竹街道`
-- **自然实体（河流等）**：`L-<实体类型>-<名称>[>区段/支流]`
-  - 示例：`L-RIVER-长江>荆江段`、`L-RIVER-桂江>良丰河`
+#### Location ID Format
+- **Administrative Divisions**: `L-<administrative_code>[>sub_area]`
+  - Example: `L-450100` (Nanning City), `L-450103>Xinzhu Street`
+- **Natural Entities (Rivers, etc.)**: `L-<entity_type>-<name>[>section/tributary]`
+  - Example: `L-RIVER-Yangtze>Jingjiang Section`, `L-RIVER-Guijiang>Liangfeng River`
 
-#### 设施ID格式
-- 格式：`F-<行政区划码>-<设施名称>`
-- 示例：`F-450223-鹿寨水文站`
+#### Facility ID Format
+- Format: `F-<administrative_code>-<facility_name>`
+- Example: `F-450223-Luzhai Hydrological Station`
 
-#### 状态ID格式
-- 格式：`(ES|LS|FS|JS)-<关联实体ID(s)>-<开始日期YYYYMMDD>_<结束日期YYYYMMDD>`
-- 示例：`FS-F-450223-鹿寨水文站-20231001_20231003`
-- 类型说明：
-  - ES: 事件状态
-  - LS: 地点状态
-  - FS: 设施状态
-  - JS: 联合状态
+#### State ID Format
+- Format: `(ES|LS|FS|JS)-<associated_entity_ID(s)>-<start_date_YYYYMMDD>_<end_date_YYYYMMDD>`
+- Example: `FS-F-450223-Luzhai Hydrological Station-20231001_20231003`
+- Type Descriptions:
+  - ES: Event State
+  - LS: Location State
+  - FS: Facility State
+  - JS: Joint State
 
-## 项目结构
+## Project Structure
 
 ```
 json2graph/
-├── json2graph/              # 主包目录
-│   ├── __init__.py         # 包初始化，导出主要接口
-│   ├── interfaces.py       # 核心接口定义（IProcessor, IGraphStore等）
-│   ├── db.py              # Neo4j数据库连接管理
-│   ├── exception.py       # 自定义异常类
-│   ├── store_mode/        # 存储模式实现
-│   │   ├── skg_store.py   # 基础存储实现
-│   │   └── stkg_store.py  # 增强版存储实现
-│   ├── processor/         # 处理器实现
-│   │   ├── spatial_processor.py              # 空间数据处理器
-│   │   └── spatial_relationship_processor.py # 空间关系处理器
-│   └── sampleData/        # 示例数据
-│       └── flood_data.py  # 洪涝灾害示例数据
-├── docs/                  # 文档目录
-│   ├── graph_overview.md  # 知识图谱总体说明
-│   └── spatial_framework.md  # 空间处理框架说明
-├── jsonDefinition.md      # JSON数据格式定义
-├── requirements.txt       # 依赖列表
-├── setup.py              # 安装配置
-└── README.md             # 项目说明
+├── json2graph/              # Main package directory
+│   ├── __init__.py         # Package initialization, exports main interfaces
+│   ├── interfaces.py       # Core interface definitions (IProcessor, IGraphStore, etc.)
+│   ├── db.py              # Neo4j database connection management
+│   ├── exception.py       # Custom exception classes
+│   ├── store_mode/        # Storage mode implementations
+│   │   ├── skg_store.py   # Basic storage implementation
+│   │   └── stkg_store.py  # Enhanced storage implementation
+│   ├── processor/         # Processor implementations
+│   │   ├── spatial_processor.py              # Spatial data processor
+│   │   └── spatial_relationship_processor.py # Spatial relationship processor
+│   └── sampleData/        # Sample data
+│       └── flood_data.py  # Flood disaster sample data
+├── docs/                  # Documentation directory
+│   ├── graph_overview.md  # Knowledge graph overview
+│   └── spatial_framework.md  # Spatial processing framework documentation
+├── jsonDefinition.md      # JSON data format definition
+├── requirements.txt       # Dependency list
+├── setup.py              # Installation configuration
+└── README.md             # Project documentation
 ```
 
-## API参考
+## API Reference
 
-### 核心接口
+### Core Interfaces
 
 #### IGraphStore
-图存储接口，主要方法：
-- `add_processor(processor)` - 添加数据处理器
-- `remove_processor(name)` - 移除处理器
-- `store_knowledge_graph(data)` - 存储完整知识图谱（包括基础实体、状态实体、状态关系）
+Graph storage interface, main methods:
+- `add_processor(processor)` - Add data processor
+- `remove_processor(name)` - Remove processor
+- `store_knowledge_graph(data)` - Store complete knowledge graph (including base entities, state entities, state relationships)
 
 #### IProcessor
-处理器接口，必须实现的方法：
-- `get_name()` - 返回处理器名称
-- `get_supported_entity_types()` - 返回支持的实体类型列表
-- `process(entity_type, data, context)` - 处理数据并返回ProcessorResult
+Processor interface, required methods:
+- `get_name()` - Return processor name
+- `get_supported_entity_types()` - Return list of supported entity types
+- `process(entity_type, data, context)` - Process data and return ProcessorResult
 
-可选实现的方法：
-- `get_required_indexes()` - 返回处理器需要的索引列表
-- `get_spatial_entity_types()` - 返回需要空间索引的实体类型
+Optional methods:
+- `get_required_indexes()` - Return list of required indexes
+- `get_spatial_entity_types()` - Return entity types that need spatial indexing
 
 #### ProcessorResult
-处理器结果类，支持的操作：
-- `add_property(key, value)` - 添加单个属性
-- `add_properties(properties)` - 批量添加属性
-- `add_label(label)` - 添加单个标签
-- `add_labels(labels)` - 批量添加标签
-- `create_node(node_type, properties, relationship_type, relationship_direction)` - 创建新节点并建立关系
-- `create_relationship(target_node_id, relationship_type, properties)` - 创建与指定节点的关系
-- `execute_cypher(query, params)` - 执行自定义Cypher查询
+Processor result class, supported operations:
+- `add_property(key, value)` - Add single property
+- `add_properties(properties)` - Batch add properties
+- `add_label(label)` - Add single label
+- `add_labels(labels)` - Batch add labels
+- `create_node(node_type, properties, relationship_type, relationship_direction)` - Create new node and establish relationship
+- `create_relationship(target_node_id, relationship_type, properties)` - Create relationship with specified node
+- `execute_cypher(query, params)` - Execute custom Cypher query
 
-#### EntityType枚举
-- `BASE_ENTITY` - 基础实体（事件、地点、设施）
-- `STATE_ENTITY` - 状态实体
-- `STATE_RELATION` - 状态关系
+#### EntityType Enumeration
+- `BASE_ENTITY` - Base entities (events, locations, facilities)
+- `STATE_ENTITY` - State entities
+- `STATE_RELATION` - State relationships
 
-### 存储模式
+### Storage Modes
 
 #### SKGStore
-基础时空知识图谱存储实现：
-- 支持基础实体、状态实体、状态关系的存储
-- 状态实体采用链式结构存储
-- 支持动态添加和移除处理器
-- 所有处理器在节点插入后执行
+Basic spatio-temporal knowledge graph storage implementation:
+- Supports storage of base entities, state entities, and state relationships
+- State entities stored in chain structure
+- Supports dynamic addition and removal of processors
+- All processors execute after node insertion
 
 #### STKGStore  
-增强版存储实现，继承自SKGStore：
-- 自动集成SpatialProcessor（处理空间属性）
-- 自动集成SpatialRelationshipProcessor（构建空间关系）
-- 适用于需要空间关系建模的场景
+Enhanced storage implementation, inherits from SKGStore:
+- Automatically integrates SpatialProcessor (handles spatial attributes)
+- Automatically integrates SpatialRelationshipProcessor (builds spatial relationships)
+- Suitable for scenarios requiring spatial relationship modeling
 
-### 内置处理器
+### Built-in Processors
 
 #### SpatialProcessor
-处理地点实体的空间属性：
-- 解析地点ID（行政区划码、河流等）
-- 提取行政层级信息
-- 识别父级地点关系
+Processes spatial attributes of location entities:
+- Parses location IDs (administrative codes, rivers, etc.)
+- Extracts administrative hierarchy information
+- Identifies parent location relationships
 
 #### SpatialRelationshipProcessor  
-构建地点间的空间关系：
-- 构建行政区划层级关系（PARENT_OF）
-- 构建地点-设施关联关系（LOCATED_IN）
+Builds spatial relationships between locations:
+- Builds administrative hierarchy relationships (PARENT_OF)
+- Builds location-facility association relationships (LOCATED_IN)
 
-## 文档
+## Documentation
 
-- [jsonDefinition.md](jsonDefinition.md) - JSON数据格式详细定义
-- [docs/graph_overview.md](docs/graph_overview.md) - 知识图谱结构总体说明
-- [docs/spatial_framework.md](docs/spatial_framework.md) - 空间处理框架说明
+- [jsonDefinition.md](jsonDefinition.md) - Detailed JSON data format definition
+- [docs/graph_overview.md](docs/graph_overview.md) - Knowledge graph structure overview
+- [docs/spatial_framework.md](docs/spatial_framework.md) - Spatial processing framework documentation
 
-## 示例数据
+## Sample Data
 
-项目包含洪涝灾害示例数据，位于 `json2graph/sampleData/flood_data.py`，可用于测试和学习。
+The project includes flood disaster sample data located in `json2graph/sampleData/flood_data.py`, which can be used for testing and learning.
 
-## 许可证
+## License
 
-MIT License - 详见 [LICENSE](LICENSE) 文件
+MIT License - see [LICENSE](LICENSE) file for details
 
-## 贡献
+## Contributing
 
-欢迎提交Issue和Pull Request来改进项目。
+Issues and Pull Requests are welcome to improve the project.
 
-## 作者
+## Author
 
 lihao77
 
 ---
 
-**注意**：使用前需要安装并配置Neo4j数据库。
+**Note**: Neo4j database installation and configuration required before use.
+
+[中文文档](README_zh.md)
