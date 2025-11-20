@@ -186,18 +186,6 @@ class IProcessor(ABC):
         """
         pass
     
-    @abstractmethod
-    def validate_config(self, config: Dict[str, Any]) -> bool:
-        """验证处理器配置
-        
-        Args:
-            config: 配置字典
-            
-        Returns:
-            配置是否有效
-        """
-        pass
-    
     def get_required_indexes(self) -> List[str]:
         """获取处理器需要的所有索引
         

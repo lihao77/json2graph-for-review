@@ -87,7 +87,9 @@ class SpatialRelationshipProcessor(IProcessor):
 
         # 仅为地点实体添加空间属性，不创建层级关系
         # (层级关系由db.py框架统一处理，确保数据一致性)
-        if entity_type == "地点":
+        
+        # 仅处理以"L-"开头的地点实体，避免处理非标准ID
+        if entity_type == "地点" and entity_id.startswith("L-"):
             # 添加行政级别属性，供后续查询使用
             admin_level = self._get_admin_level(entity_id)
             if admin_level != "unknown":
@@ -345,32 +347,7 @@ class SpatialRelationshipProcessor(IProcessor):
 
         return location_ids
 
-    def validate_config(self, config: Dict[str, Any]) -> bool:
-        """验证处理器配置
 
-        Args:
-            config: 配置字典
-
-        Returns:
-            配置是否有效
-        """
-        # 验证空间关系配置
-        if "spatial_relationships" in config:
-            relationships = config["spatial_relationships"]
-            if not isinstance(relationships, dict):
-                return False
-
-            for rel_type, entity_types in relationships.items():
-                if not isinstance(rel_type, str) or not isinstance(entity_types, list):
-                    return False
-
-        # 验证行政区划层级配置
-        if "admin_hierarchy" in config:
-            hierarchy = config["admin_hierarchy"]
-            if not isinstance(hierarchy, dict):
-                return False
-
-        return True
 
     def get_required_indexes(self) -> List[str]:
         """获取处理器需要的所有索引

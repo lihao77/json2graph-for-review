@@ -210,11 +210,6 @@ class SpatialProcessor(IProcessor):
         """返回需要空间索引的实体类型"""
         return ["地点", "设施"]
     
-    def validate_config(self, config: Dict[str, Any]) -> bool:
-        """验证处理器配置"""
-        required_keys = ["entity_types", "layer_naming_pattern"]
-        return all(key in config for key in required_keys)
-    
     def get_required_indexes(self) -> List[str]:
         """返回所需的索引列表，包括Neo4j Spatial索引"""
         indexes = [
